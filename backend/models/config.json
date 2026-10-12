@@ -1,0 +1,25 @@
+{
+  "architectures": [
+    "MiewIdNet"
+  ],
+  "auto_map": {
+    "AutoConfig": "configuration_miewid.MiewIdNetConfig",
+    "AutoModel": "modeling_miewid.MiewIdNet"
+  },
+  "dropout": 0.0,
+  "fc_dim": 512,
+  "k": null,
+  "loss_module": "softmax",
+  "ls_eps": 0.0,
+  "margin": 0.5,
+  "margins": null,
+  "model_name": "efficientnetv2_rw_m",
+  "model_type": "miewid",
+  "n_classes": 10,
+  "pretrained": true,
+  "s": 30.0,
+  "theta_zero": 0.785,
+  "torch_dtype": "float32",
+  "transformers_version": "4.45.0.dev0",
+  "use_fc": false
+}
