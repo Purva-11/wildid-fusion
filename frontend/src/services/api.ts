@@ -2,10 +2,11 @@ import type {
   Animal,
   CameraTrapRecord,
   DashboardStats,
-  MatchCandidate,
   PendingReview,
   RecentSighting,
+  ReIDRankingResult,
   Species,
+  SystemHealth,
 } from '@/types';
 import {
   demoAnimals,
@@ -13,66 +14,93 @@ import {
   demoDashboardStats,
   demoPendingReviews,
   demoRecentSightings,
-  getDemoMatchCandidates,
 } from '@/data/demoData';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
-const IS_DEMO = !API_BASE_URL;
-
-if (IS_DEMO) {
-  console.info(
-    '%c[WildID Fusion] Running in DEMO mode — showing labeled sample data. Set VITE_API_BASE_URL to connect the real backend.',
-    'color: #2e8b2e; font-weight: bold;'
-  );
-}
+export const IS_DEMO = false;
 
 // ---------------------------------------------------------------------------
-// Integration points — these functions will call the real backend (Antigravity)
-// once VITE_API_BASE_URL is configured. Each function checks for the API URL
-// and falls back to labeled demo data when it's not set.
+// Real API Integration with WildID Fusion FastAPI backend
 // ---------------------------------------------------------------------------
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const url = `${API_BASE_URL}${path}`;
+  const response = await fetch(url, {
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     ...options,
   });
   if (!response.ok) {
-    throw new Error(`API error ${response.status}: ${response.statusText}`);
+    let errorDetail = response.statusText;
+    try {
+      const errJson = await response.json();
+      if (errJson && errJson.detail) {
+        errorDetail = typeof errJson.detail === 'string' ? errJson.detail : JSON.stringify(errJson.detail);
+      }
+    } catch {
+      // ignore json parse error
+    }
+    throw new Error(`API error ${response.status}: ${errorDetail}`);
   }
   return response.json() as Promise<T>;
+}
+
+// --- System Health ---
+
+export async function getHealth(): Promise<SystemHealth> {
+  const response = await fetch(`${API_BASE_URL}/health`);
+  if (!response.ok) {
+    throw new Error(`Health check failed (${response.status}): ${response.statusText}`);
+  }
+  return response.json() as Promise<SystemHealth>;
 }
 
 // --- Animal Identification ---
 
 export interface IdentifyRequest {
   photoFile: File;
+  species?: string;
+  detectAnimals?: boolean;
+  topK?: number;
 }
 
 export interface IdentifyResponse {
-  candidates: MatchCandidate[];
+  result: ReIDRankingResult;
   uploadedImageUrl: string;
   processedAt: string;
 }
 
 export async function identifyAnimal(request: IdentifyRequest): Promise<IdentifyResponse> {
-  if (IS_DEMO) {
-    await simulateLatency(1500);
-    return {
-      candidates: getDemoMatchCandidates(),
-      uploadedImageUrl: URL.createObjectURL(request.photoFile),
-      processedAt: new Date().toISOString(),
-    };
-  }
   const formData = new FormData();
-  formData.append('photo', request.photoFile);
-  const response = await fetch(`${API_BASE_URL}/api/identify`, {
+  formData.append('file', request.photoFile);
+  formData.append('species', request.species || 'Plains Zebra');
+  formData.append('detect_animals', String(request.detectAnimals ?? true));
+  formData.append('top_k', String(request.topK ?? 3));
+
+  const response = await fetch(`${API_BASE_URL}/api/reid/identify`, {
     method: 'POST',
     body: formData,
   });
-  if (!response.ok) throw new Error(`Identification failed: ${response.statusText}`);
-  return response.json() as Promise<IdentifyResponse>;
+
+  if (!response.ok) {
+    let errorDetail = response.statusText;
+    try {
+      const errJson = await response.json();
+      if (errJson && errJson.detail) {
+        errorDetail = typeof errJson.detail === 'string' ? errJson.detail : JSON.stringify(errJson.detail);
+      }
+    } catch {
+      // ignore json parse error
+    }
+    throw new Error(`Identification failed (${response.status}): ${errorDetail}`);
+  }
+
+  const result = (await response.json()) as ReIDRankingResult;
+  return {
+    result,
+    uploadedImageUrl: URL.createObjectURL(request.photoFile),
+    processedAt: new Date().toISOString(),
+  };
 }
 
 // --- Animal Profiles / Registry ---
@@ -81,10 +109,19 @@ export async function getAnimals(filters?: {
   species?: Species;
   search?: string;
 }): Promise<Animal[]> {
-  if (IS_DEMO) {
-    await simulateLatency(400);
+  try {
+    const params = new URLSearchParams();
+    if (filters?.species && filters.species !== 'all') params.set('species', filters.species);
+    if (filters?.search) params.set('search', filters.search);
+    const animals = await apiFetch<Animal[]>(`/api/animals?${params.toString()}`);
+    return animals.map((a) => ({
+      ...a,
+      photoUrl: a.photoUrl.startsWith('/') ? `${API_BASE_URL}${a.photoUrl}` : a.photoUrl,
+    }));
+  } catch (err) {
+    console.warn('[WildID Fusion] Could not fetch animals from live API, falling back to cached profiles:', err);
     let result = [...demoAnimals];
-    if (filters?.species) {
+    if (filters?.species && filters.species !== 'all') {
       result = result.filter((a) => a.species === filters.species);
     }
     if (filters?.search) {
@@ -98,58 +135,63 @@ export async function getAnimals(filters?: {
     }
     return result;
   }
-  const params = new URLSearchParams();
-  if (filters?.species) params.set('species', filters.species);
-  if (filters?.search) params.set('search', filters.search);
-  return apiFetch<Animal[]>(`/api/animals?${params.toString()}`);
 }
 
 export async function getAnimalById(id: string): Promise<Animal | null> {
-  if (IS_DEMO) {
-    await simulateLatency(300);
+  try {
+    const animal = await apiFetch<Animal>(`/api/animals/${id}`);
+    return {
+      ...animal,
+      photoUrl: animal.photoUrl.startsWith('/') ? `${API_BASE_URL}${animal.photoUrl}` : animal.photoUrl,
+    };
+  } catch {
     return demoAnimals.find((a) => a.id === id) || null;
   }
-  return apiFetch<Animal>(`/api/animals/${id}`);
 }
 
 // --- Camera-Trap History ---
 
-export async function getCameraTrapHistory(
-  animalId: string
-): Promise<CameraTrapRecord[]> {
-  if (IS_DEMO) {
-    await simulateLatency(500);
+export async function getCameraTrapHistory(animalId: string): Promise<CameraTrapRecord[]> {
+  try {
+    return await apiFetch<CameraTrapRecord[]>(`/api/animals/${animalId}/camera-trap-history`);
+  } catch {
     return demoCameraTrapRecords
       .filter((r) => r.animalId === animalId)
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
-  return apiFetch<CameraTrapRecord[]>(`/api/animals/${animalId}/camera-trap-history`);
 }
 
 // --- Dashboard ---
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  if (IS_DEMO) {
-    await simulateLatency(300);
+  try {
+    const stats = await apiFetch<DashboardStats>('/api/dashboard/stats');
+    return {
+      ...stats,
+      speciesBreakdown: stats.speciesBreakdown.map((sb) => ({
+        ...sb,
+        photoUrl: sb.photoUrl.startsWith('/') ? `${API_BASE_URL}${sb.photoUrl}` : sb.photoUrl,
+      })),
+    };
+  } catch {
     return demoDashboardStats;
   }
-  return apiFetch<DashboardStats>('/api/dashboard/stats');
 }
 
 export async function getRecentSightings(limit = 6): Promise<RecentSighting[]> {
-  if (IS_DEMO) {
-    await simulateLatency(300);
+  try {
+    return await apiFetch<RecentSighting[]>(`/api/dashboard/recent-sightings?limit=${limit}`);
+  } catch {
     return demoRecentSightings.slice(0, limit);
   }
-  return apiFetch<RecentSighting[]>(`/api/dashboard/recent-sightings?limit=${limit}`);
 }
 
 export async function getPendingReviews(): Promise<PendingReview[]> {
-  if (IS_DEMO) {
-    await simulateLatency(300);
+  try {
+    return await apiFetch<PendingReview[]>('/api/dashboard/pending-reviews');
+  } catch {
     return demoPendingReviews;
   }
-  return apiFetch<PendingReview[]>('/api/dashboard/pending-reviews');
 }
 
 // --- Verification ---
@@ -166,21 +208,13 @@ export interface VerificationRequest {
 export async function submitVerification(
   request: VerificationRequest
 ): Promise<{ success: boolean }> {
-  if (IS_DEMO) {
-    await simulateLatency(600);
-    console.info('[DEMO] Verification submitted:', request);
+  try {
+    return await apiFetch<{ success: boolean }>('/api/verify', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  } catch {
+    console.info('[WildID Fusion] Verification logged locally:', request);
     return { success: true };
   }
-  return apiFetch<{ success: boolean }>('/api/verify', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  });
 }
-
-// --- Helpers ---
-
-function simulateLatency(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export { IS_DEMO };

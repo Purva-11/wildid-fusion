@@ -1,13 +1,60 @@
-export type Species =
+export type KnownSpecies =
   | 'Bengal Tiger'
   | 'Indian Leopard'
   | 'Asian Elephant'
   | 'Sambar Deer'
   | 'Indian Wolf'
   | 'Sloth Bear'
-  | 'Jaguar';
+  | 'Jaguar'
+  | 'Plains Zebra'
+  | 'Cheetah';
+
+export type Species = KnownSpecies | string;
 
 export type MatchConfidence = 'high' | 'medium' | 'low';
+
+export type MatchTier = 'HIGH' | 'MODERATE' | 'LOW';
+
+export type ReIDMatchStatus = 'MATCHED' | 'UNCERTAIN' | 'UNKNOWN' | 'NO_DATA';
+
+export interface CandidateMatch {
+  individual_id: string;
+  animal_name?: string | null;
+  similarity_score: number;
+  match_tier: MatchTier;
+  metadata: Record<string, string | number | boolean | null | undefined>;
+}
+
+export interface ReIDRankingResult {
+  species: string;
+  match_status: ReIDMatchStatus;
+  top_candidates: CandidateMatch[];
+  best_score: number | null;
+  thresholds_applied: {
+    high_threshold: number;
+    moderate_threshold: number;
+  };
+  disclaimer: string;
+  detector_applied: boolean;
+  detector_status?: string | null;
+  primary_detection_box?: [number, number, number, number] | null;
+  total_animals_detected: number;
+}
+
+export interface SystemHealth {
+  status: string;
+  model_loaded: boolean;
+  resolved_model_path: string | null;
+  blocker_reason: string | null;
+  detector_loaded: boolean;
+  detector_model_path: string | null;
+  detector_blocker_reason: string | null;
+  registered_species: string[];
+  total_individuals: number;
+  total_reference_images: number;
+  input_resolution: string;
+  embedding_dimensions: number;
+}
 
 export type VerificationStatus = 'confirmed' | 'pending' | 'rejected';
 

@@ -26,11 +26,11 @@ import {
 } from 'lucide-react';
 
 interface AnimalRegistryProps {
-  onNavigate: (screen: Screen) => void;
+  onNavigate?: (screen: Screen) => void;
   onViewHistory: (animalId: string) => void;
 }
 
-export function AnimalRegistry({ onNavigate: _onNavigate, onViewHistory }: AnimalRegistryProps) {
+export function AnimalRegistry({ onViewHistory }: AnimalRegistryProps) {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -115,7 +115,7 @@ export function AnimalRegistry({ onNavigate: _onNavigate, onViewHistory }: Anima
             className="appearance-none rounded-xl border border-forest-200 bg-white py-3 pl-10 pr-8 text-sm font-medium text-forest-700 outline-none transition-all focus:border-forest-400 focus:ring-2 focus:ring-forest-200"
           >
             <option value="all">All Species</option>
-            {speciesList.map((s) => (
+            {Array.from(new Set([...animals.map((a) => a.species), ...speciesList])).map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>

@@ -7,10 +7,8 @@ import {
   IS_DEMO,
 } from '@/services/api';
 import {
-  formatDateTime,
   timeAgo,
   statusColor,
-  statusLabel,
 } from '@/utils/format';
 import {
   PawPrint,

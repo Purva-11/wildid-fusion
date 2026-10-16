@@ -1,0 +1,46 @@
+[
+  {
+    "image_id": "zebra_1_a",
+    "image_file": "zebra_1_a.png",
+    "individual_id": "IND-ZEB-001",
+    "species": "Plains Zebra",
+    "animal_name": "Kip (Alpha Stallion)",
+    "source_metadata": {
+      "view": "left_flank",
+      "source": "reference_fixture"
+    }
+  },
+  {
+    "image_id": "demo_zebra",
+    "image_file": "demo_zebra.png",
+    "individual_id": "IND-ZEB-001",
+    "species": "Plains Zebra",
+    "animal_name": "Kip (Alpha Stallion)",
+    "source_metadata": {
+      "view": "standing_profile",
+      "source": "reference_fixture"
+    }
+  },
+  {
+    "image_id": "zebra_2",
+    "image_file": "zebra_2.png",
+    "individual_id": "IND-ZEB-002",
+    "species": "Plains Zebra",
+    "animal_name": "Zara (Subadult Mare)",
+    "source_metadata": {
+      "view": "left_oblique",
+      "source": "reference_fixture"
+    }
+  },
+  {
+    "image_id": "demo_cheetah",
+    "image_file": "demo_cheetah.png",
+    "individual_id": "IND-CHT-001",
+    "species": "Cheetah",
+    "animal_name": "Kendi (Female)",
+    "source_metadata": {
+      "view": "profile",
+      "source": "reference_fixture"
+    }
+  }
+]

@@ -101,3 +101,69 @@ export function conservationColor(status: string): string {
       return 'text-forest-600 bg-forest-50 border-forest-200';
   }
 }
+
+export function tierColor(tier: 'HIGH' | 'MODERATE' | 'LOW' | string): string {
+  switch (tier.toUpperCase()) {
+    case 'HIGH':
+      return 'text-forest-700 bg-forest-50 border-forest-300';
+    case 'MODERATE':
+      return 'text-amber-700 bg-amber-50 border-amber-300';
+    case 'LOW':
+    default:
+      return 'text-zinc-600 bg-zinc-50 border-zinc-200';
+  }
+}
+
+export function formatSimilarity(score: number | null | undefined): string {
+  if (score === null || score === undefined || Number.isNaN(score)) return 'N/A';
+  const prefix = score > 0 ? '+' : '';
+  return `${prefix}${score.toFixed(4)}`;
+}
+
+export function matchStatusDetails(status: string): {
+  bg: string;
+  text: string;
+  border: string;
+  title: string;
+  description: string;
+} {
+  switch (status.toUpperCase()) {
+    case 'MATCHED':
+      return {
+        bg: 'bg-emerald-50',
+        text: 'text-emerald-800',
+        border: 'border-emerald-300',
+        title: 'Confident Match Verified',
+        description:
+          'Highest similarity score meets or exceeds the high-confidence verification threshold (≥ 0.70). Individual identification confirmed.',
+      };
+    case 'UNCERTAIN':
+      return {
+        bg: 'bg-amber-50',
+        text: 'text-amber-800',
+        border: 'border-amber-300',
+        title: 'Moderate Match — Visual Review Recommended',
+        description:
+          'Candidate matched with moderate alignment (0.55 – 0.70). Manual expert comparison recommended before logging as verified.',
+      };
+    case 'UNKNOWN':
+      return {
+        bg: 'bg-blue-50',
+        text: 'text-blue-800',
+        border: 'border-blue-300',
+        title: 'Potential New / Unregistered Individual',
+        description:
+          'No catalogued candidate met the minimum identification threshold (< 0.55). This sighting likely represents a new or unregistered animal.',
+      };
+    case 'NO_DATA':
+    default:
+      return {
+        bg: 'bg-zinc-50',
+        text: 'text-zinc-700',
+        border: 'border-zinc-300',
+        title: 'No Reference Data / No Animals Detected',
+        description:
+          'Either no reference gallery profiles exist for this species, or no wildlife subjects were detected in the uploaded frame.',
+      };
+  }
+}

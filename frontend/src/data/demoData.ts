@@ -553,6 +553,8 @@ export function getDemoMatchCandidates(): MatchCandidate[] {
 }
 
 export const speciesList: Species[] = [
+  'Plains Zebra',
+  'Cheetah',
   'Bengal Tiger',
   'Indian Leopard',
   'Asian Elephant',

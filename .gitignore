@@ -25,3 +25,11 @@ Thumbs.db
 # Large model weights
 backend/models/*.onnx
 backend/models/*.safetensors
+backend/models/*.ckpt
+backend/models/*.yaml
+
+# Conversion environment
+.conversion_venv/
+
+# Gallery binary embeddings (large generated artifacts)
+backend/gallery_store/*.npz

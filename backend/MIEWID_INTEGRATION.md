@@ -141,3 +141,25 @@ Run frontend:
 cd "d:\Ansh Dekstop\WildHack Prototype\frontend"
 npm run dev
 ```
+
+---
+
+## 7. Persistent Reference Gallery (Phase 2)
+
+See [backend/GALLERY_PERSISTENCE.md](file:///d:/Ansh%20Dekstop/WildHack%20Prototype/backend/GALLERY_PERSISTENCE.md) for detailed documentation on:
+- Storage layout in `backend/gallery_store/` (`manifest.json` + `embeddings.npz`).
+- Building and updating the gallery with `build_gallery.py`.
+- Safe species alias resolution (`miewid_service/taxonomy.py`).
+- Automatic startup loading via FastAPI lifespan context manager.
+- Onboarding future authorized datasets (e.g., WildlifeReID-10k).
+
+---
+
+## 8. Wildlife Animal Detection (Phase 3)
+
+See [backend/DETECTOR_SETUP.md](file:///d:/Ansh%20Dekstop/WildHack%20Prototype/backend/DETECTOR_SETUP.md) for detailed documentation on:
+- Upstream detection pipeline using MegaDetector ONNX.
+- Geometry pipeline: normalized bounding-box validation, 8% context padding, and crop handoff.
+- Multi-animal detection handling and highest-confidence crop candidate policy.
+- Installing verified, licensed ONNX detector weights (`backend/models/megadetector.onnx`).
+- Dedicated detection endpoint (`POST /api/detector/detect`) and optional Re-ID detection integration (`detect_animals=True`).

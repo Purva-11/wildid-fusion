@@ -20,7 +20,6 @@ import {
   Check,
   Loader2,
   Camera,
-  AlertCircle,
   Clock,
 } from 'lucide-react';
 
@@ -29,7 +28,7 @@ interface VerificationProps {
   pendingRecord?: CameraTrapRecord | null;
   pendingAnimal?: Animal | null;
   uploadedImageUrl?: string;
-  onNavigate: (screen: Screen) => void;
+  onNavigate?: (screen: Screen) => void;
 }
 
 export function Verification({
@@ -37,7 +36,6 @@ export function Verification({
   pendingRecord,
   pendingAnimal,
   uploadedImageUrl,
-  onNavigate,
 }: VerificationProps) {
   const [reviews, setReviews] = useState<PendingReview[]>([]);
   const [loading, setLoading] = useState(true);
