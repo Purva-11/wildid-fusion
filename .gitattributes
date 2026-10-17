@@ -1,0 +1,2 @@
+backend/models/*.onnx filter=lfs diff=lfs merge=lfs -text
+backend/gallery_store/*.npz filter=lfs diff=lfs merge=lfs -text

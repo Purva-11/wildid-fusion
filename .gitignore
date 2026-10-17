@@ -1,3 +1,4 @@
+
 # Python
 __pycache__/
 *.py[cod]
@@ -22,8 +23,9 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
+
 # Large model weights
-backend/models/*.onnx
+# ONNX models are tracked through Git LFS
 backend/models/*.safetensors
 backend/models/*.ckpt
 backend/models/*.yaml
@@ -31,5 +33,5 @@ backend/models/*.yaml
 # Conversion environment
 .conversion_venv/
 
-# Gallery binary embeddings (large generated artifacts)
-backend/gallery_store/*.npz
+# Gallery binary embeddings
+# embeddings.npz is tracked through Git LFS
